@@ -201,10 +201,10 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                             style={{ filter: `drop-shadow(0 4px 6px ${path.color}66)` }}
                         />
                         <text
-                            y="2"
+                            y="4"
                             textAnchor="middle"
                             dominantBaseline="middle"
-                            fontSize="36"
+                            fontSize="54"
                             fill="black"
                             className="pointer-events-none select-none"
                             style={{ fontVariantEmoji: 'emoji' }} // Ensure coloring
@@ -227,10 +227,10 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                             strokeWidth="4"
                         />
                         <text
-                            y="2"
+                            y="4"
                             textAnchor="middle"
                             dominantBaseline="middle"
-                            fontSize="36"
+                            fontSize="54"
                             fill="black"
                             className="pointer-events-none select-none"
                              style={{ fontVariantEmoji: 'emoji' }}
