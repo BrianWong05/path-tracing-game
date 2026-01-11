@@ -166,7 +166,7 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                     <path
                         d={isCompleted ? path.d : (state?.drawingPath || '')}
                         fill="none"
-                        stroke={isCompleted ? '#fbbf24' : (isOffTrack ? '#ef4444' : path.color)}
+                        stroke={isCompleted ? path.color : (isOffTrack ? '#ef4444' : path.color)}
                         strokeWidth={30}
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -196,7 +196,7 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                         <circle
                             r="40"
                             fill={isCompleted ? '#fff' : path.color}
-                            stroke={isCompleted ? '#facc15' : 'none'}
+                            stroke={isCompleted ? path.color : 'none'}
                             strokeWidth={isCompleted ? 4 : 0}
                             style={{ filter: `drop-shadow(0 4px 6px ${path.color}66)` }}
                         />
@@ -223,7 +223,7 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                          <circle
                             r="40"
                             fill="white"
-                            stroke={isCompleted ? '#fbbf24' : path.color}
+                            stroke={path.color}
                             strokeWidth="4"
                         />
                         <text
