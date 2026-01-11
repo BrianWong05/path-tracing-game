@@ -24,7 +24,7 @@ const COLORS = [
 ];
 
 const ICONS_START = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊'];
-const ICONS_END = ['🦴', '🧶', '🧀', 'seeds', '🥕', '🍗'];
+const ICONS_END = ['🦴', '🧶', '🧀', '🌻', '🥕', '🍗'];
 
 // Helper to get random number in range
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
