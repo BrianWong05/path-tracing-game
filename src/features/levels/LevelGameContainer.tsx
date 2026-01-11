@@ -4,6 +4,7 @@ import { generateLevel } from './PathGenerator';
 import { getLevelById } from './LevelData';
 import { TangledCanvas } from '../tracing/TangledCanvas';
 import { VictoryModal } from '../tracing/VictoryModal';
+import { useGameSound } from '../audio/useGameSound';
 import type { PathDef } from '../tracing/types';
 
 interface LevelGameContainerProps {
@@ -16,6 +17,7 @@ export const LevelGameContainer: React.FC<LevelGameContainerProps> = ({ levelId,
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [key, setKey] = useState(0); // Force reset on restart
   const [paths, setPaths] = useState<PathDef[]>([]);
+  const { playSuccess, playMistake, playStageComplete } = useGameSound();
 
   // Load Level Config
   const levelConfig = useMemo(() => getLevelById(levelId), [levelId]);
@@ -43,6 +45,7 @@ export const LevelGameContainer: React.FC<LevelGameContainerProps> = ({ levelId,
 
   const handleAllCompleted = () => {
       // Delay slightly for effect?
+      playStageComplete();
       setTimeout(() => {
           setIsVictoryOpen(true);
       }, 500);
@@ -82,6 +85,8 @@ export const LevelGameContainer: React.FC<LevelGameContainerProps> = ({ levelId,
                 key={`${levelId}-${key}`} // Force remount on level change or restart
                 paths={paths}
                 onAllCompleted={handleAllCompleted}
+                onMistake={playMistake}
+                onPathComplete={playSuccess}
             />
         </div>
 
