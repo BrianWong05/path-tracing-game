@@ -10,4 +10,5 @@ export interface PathDef {
   d: string; // Cubic Bezier or any SVG path data
   startNode: TracingNode;
   endNode: TracingNode;
+  label: string; // Cantonese Animal Name (e.g., '貓')
 }

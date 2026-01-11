@@ -1,6 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import { useTangledTracing } from './useTangledTracing';
 import type { PathDef } from './types';
+import { AnimalNode } from './AnimalNode';
+import { useCantoneseSpeech } from './useCantoneseSpeech';
+import { Mic, MicOff } from 'lucide-react';
 
 // Dummy Data for Validation (Fallback)
 const SAMPLE_PATHS: PathDef[] = [
@@ -10,6 +13,7 @@ const SAMPLE_PATHS: PathDef[] = [
     d: 'M 100 100 C 400 100 400 500 900 500', 
     startNode: { x: 100, y: 100, icon: '🐱' },
     endNode: { x: 900, y: 500, icon: '🧶' },
+    label: '貓'
   },
   {
     id: 'dog',
@@ -17,6 +21,7 @@ const SAMPLE_PATHS: PathDef[] = [
     d: 'M 100 500 C 400 500 400 100 900 100', 
     startNode: { x: 100, y: 500, icon: '🐶' },
     endNode: { x: 900, y: 100, icon: '🦴' },
+    label: '狗'
   },
   {
     id: 'bird',
@@ -24,6 +29,7 @@ const SAMPLE_PATHS: PathDef[] = [
     d: 'M 100 300 C 300 300 700 300 900 300', 
     startNode: { x: 100, y: 300, icon: '🐦' },
     endNode: { x: 900, y: 300, icon: '🔔' },
+    label: '雀仔'
   },
 ];
 
@@ -32,13 +38,35 @@ interface TangledCanvasProps {
   onAllCompleted?: () => void;
   onMistake?: () => void;
   onPathComplete?: () => void;
+  onVoiceMatch?: () => void;
 }
 
-export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PATHS, onAllCompleted, onMistake, onPathComplete }) => {
+export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PATHS, onAllCompleted, onMistake, onPathComplete, onVoiceMatch }) => {
   const { pathStates, activePathId, startTracing, trace, stopTracing } = useTangledTracing(paths, 40, {
     onMistake,
     onPathComplete
   });
+  
+  // Voice Control
+  const keywords = React.useMemo(() => paths.map(p => p.label).filter(Boolean), [paths]);
+  const { isListening, matchedKeyword, startListening, stopListening, error: voiceError } = useCantoneseSpeech(keywords);
+
+  // Auto-start listening on mount only
+  const hasStartedRef = useRef(false);
+  useEffect(() => {
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      startListening();
+    }
+  }, [startListening]);
+
+  // Play sound on voice match
+  useEffect(() => {
+    if (matchedKeyword) {
+      onVoiceMatch?.();
+    }
+  }, [matchedKeyword, onVoiceMatch]);
+
   const svgRef = useRef<SVGSVGElement>(null);
   const rafRef = useRef<number | null>(null);
   const lastPosRef = useRef<{ x: number, y: number } | null>(null);
@@ -92,7 +120,7 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
         rafRef.current = null;
     }
     e.currentTarget.releasePointerCapture(e.pointerId);
-    stopTracing(); // Changed from stopDrawing() to stopTracing() to match existing hook function
+    stopTracing(); 
   };
 
   // Z-Index Sorting
@@ -105,6 +133,21 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
 
   return (
     <div className="w-full h-full relative bg-slate-50 rounded-3xl overflow-hidden shadow-xl touch-none select-none">
+       {/* Microphone Toggle Button */}
+       <button 
+          onClick={() => isListening ? stopListening() : startListening()}
+          className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-white/90 p-3 rounded-full shadow-md backdrop-blur-sm border border-slate-200 hover:bg-white hover:shadow-lg transition-all cursor-pointer"
+          title={isListening ? '關閉語音 (Mute)' : '開啟語音 (Unmute)'}
+       >
+          {voiceError ? (
+              <MicOff className="w-8 h-8 text-red-400" />
+          ) : isListening ? (
+              <Mic className="w-8 h-8 text-green-500 animate-pulse" />
+          ) : (
+              <MicOff className="w-8 h-8 text-slate-400" />
+          )}
+       </button>
+
        <svg 
          ref={svgRef}
          viewBox="0 0 1000 600"
@@ -115,10 +158,6 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
          onPointerCancel={onUp}
        >
          <defs>
-            {/* 
-                Use userSpaceOnUse to avoid clipping on horizontal lines (which have 0 height bounding boxes).
-                We define a large region covering the whole viewBox + margin.
-            */}
             <filter id="glow" filterUnits="userSpaceOnUse" x="-500" y="-500" width="2000" height="2000">
                 <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
                 <feMerge>
@@ -126,11 +165,6 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                     <feMergeNode in="SourceGraphic"/>
                 </feMerge>
             </filter>
-            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5"
-                markerWidth="6" markerHeight="6"
-                orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
          </defs>
 
          {renderList.map((path) => {
@@ -143,9 +177,6 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
             // Visual Style
             const opacity = isOtherActive ? 0.3 : 1;
 
-
-            
-            // Force re-render on completion to avoid stale state
             return (
               <g key={`${path.id}-${isCompleted ? 'done' : 'active'}`} style={{ opacity, transition: 'opacity 0.3s' }}>
                 
@@ -154,14 +185,14 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                   d={path.d}
                   fill="none"
                   stroke={path.color}
-                  strokeWidth={isCompleted ? 30 : 15} // Thicker backing when done
+                  strokeWidth={isCompleted ? 30 : 15}
                   strokeDasharray="20,20" 
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   opacity={isCompleted ? 0.2 : 0.5} 
                 />
 
-                {/* 2. Ink Path - Render only if active or completed */}
+                {/* 2. Ink Path */}
                 {(isActive || isCompleted) && (
                     <path
                         d={isCompleted ? path.d : (state?.drawingPath || '')}
@@ -175,10 +206,15 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                     />
                 )}
 
-                {/* 3. Start Node (Pure SVG to fix iPad dislocation) */}
-                <g 
-                    transform={`translate(${path.startNode.x}, ${path.startNode.y})`}
-                    className="cursor-pointer"
+                {/* 3. Start Node - Animal */}
+                <AnimalNode
+                    x={path.startNode.x}
+                    y={path.startNode.y}
+                    icon={path.startNode.icon}
+                    color={path.color}
+                    isCompleted={!!isCompleted}
+                    isActive={isActive}
+                    isMatched={matchedKeyword === path.label}
                     onPointerDown={(e) => {
                        e.stopPropagation();
                        const svg = svgRef.current;
@@ -188,57 +224,18 @@ export const TangledCanvas: React.FC<TangledCanvasProps> = ({ paths = SAMPLE_PAT
                            startTracing(x, y, path.id);
                        }
                     }}
-                >
-                    <g 
-                        className={`transition-transform duration-300 ${isActive ? 'scale-125' : 'scale-100'}`}
-                        style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-                    >
-                        <circle
-                            r="40"
-                            fill={isCompleted ? '#fff' : path.color}
-                            stroke={isCompleted ? path.color : 'none'}
-                            strokeWidth={isCompleted ? 4 : 0}
-                            style={{ filter: `drop-shadow(0 4px 6px ${path.color}66)` }}
-                        />
-                        <text
-                            y="4"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            fontSize="54"
-                            fill="black"
-                            className="pointer-events-none select-none"
-                            style={{ fontVariantEmoji: 'emoji' }} // Ensure coloring
-                        >
-                            {path.startNode.icon}
-                        </text>
-                    </g>
-                </g>
+                />
 
-                {/* 4. End Node (Pure SVG) */}
-                <g transform={`translate(${path.endNode.x}, ${path.endNode.y})`}>
-                    <g
-                        className={`transition-all duration-500 ${isCompleted ? 'scale-125 rotate-12' : ''}`}
-                        style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-                    >
-                         <circle
-                            r="40"
-                            fill="white"
-                            stroke={path.color}
-                            strokeWidth="4"
-                        />
-                        <text
-                            y="4"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            fontSize="54"
-                            fill="black"
-                            className="pointer-events-none select-none"
-                             style={{ fontVariantEmoji: 'emoji' }}
-                        >
-                            {path.endNode.icon}
-                        </text>
-                    </g>
-                </g>
+                {/* 4. End Node - Item */}
+                <AnimalNode
+                    x={path.endNode.x}
+                    y={path.endNode.y}
+                    icon={path.endNode.icon}
+                    color={path.color}
+                    isCompleted={!!isCompleted}
+                    isActive={isActive && !!isCompleted}
+                    isMatched={false} // Only start node reacts to voice
+                />
               </g>
             );
          })}

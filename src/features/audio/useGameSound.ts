@@ -71,9 +71,18 @@ export const useGameSound = () => {
     playTone(1046.50, 'triangle', 0.6, now + 0.45); // Sustain last note
   };
 
+  const playVoiceMatch = async () => {
+    await ensureAudioResumed();
+    // Cheerful "ding-ding" chime for voice match
+    // G5 -> B5 quick double chime
+    playTone(783.99, 'sine', 0.12, 0);
+    playTone(987.77, 'sine', 0.25, 0.1);
+  };
+
   return {
     playSuccess,
     playMistake,
-    playStageComplete
+    playStageComplete,
+    playVoiceMatch
   };
 };

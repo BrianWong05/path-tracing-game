@@ -25,7 +25,8 @@ export const tracingLevels: TracingLevel[] = [
         // 6 segments of 150px each. Amplitude +/- 100 (Control +/- 200)
         d: "M 50 300 Q 125 100, 200 300 T 350 300 T 500 300 T 650 300 T 800 300 T 950 300", 
         startNode: { x: 50, y: 300, icon: '🐶' },
-        endNode: { x: 950, y: 300, icon: '🏠' }
+        endNode: { x: 950, y: 300, icon: '🏠' },
+        label: '狗'
     }]
   },
   {
@@ -40,7 +41,8 @@ export const tracingLevels: TracingLevel[] = [
         // Shifted Y by +150 (Original 150->300, 50->200, 250->400)
         d: "M 50 300 L 200 200 L 350 400 L 500 200 L 650 400 L 800 200 L 950 300",
         startNode: { x: 50, y: 300, icon: '🐱' },
-        endNode: { x: 950, y: 300, icon: '🐟' }
+        endNode: { x: 950, y: 300, icon: '🐟' },
+        label: '貓'
     }]
   },
   {
@@ -55,7 +57,8 @@ export const tracingLevels: TracingLevel[] = [
         // Shifted Y by +150
         d: "M 50 300 C 200 300, 200 200, 350 200 C 500 200, 500 400, 650 400 C 800 400, 800 300, 950 300",
         startNode: { x: 50, y: 300, icon: '🐝' },
-        endNode: { x: 950, y: 300, icon: '🌸' }
+        endNode: { x: 950, y: 300, icon: '🌸' },
+        label: '蜜蜂'
     }]
   },
 
@@ -73,6 +76,7 @@ export const tracingLevels: TracingLevel[] = [
             d: 'M 100 100 C 400 100 400 500 900 500', 
             startNode: { x: 100, y: 100, icon: '🐱' },
             endNode: { x: 900, y: 500, icon: '🧶' },
+            label: '貓'
         },
         {
             id: 'dog',
@@ -80,6 +84,7 @@ export const tracingLevels: TracingLevel[] = [
             d: 'M 100 500 C 400 500 400 100 900 100', 
             startNode: { x: 100, y: 500, icon: '🐶' },
             endNode: { x: 900, y: 100, icon: '🦴' },
+            label: '狗'
         },
         {
             id: 'bird',
@@ -89,6 +94,7 @@ export const tracingLevels: TracingLevel[] = [
             d: 'M 100 300 C 300 299 700 301 900 300', 
             startNode: { x: 100, y: 300, icon: '🐦' },
             endNode: { x: 900, y: 300, icon: '🔔' },
+            label: '雀仔'
         },
     ]
   },
@@ -106,6 +112,7 @@ export const tracingLevels: TracingLevel[] = [
             d: 'M 100 100 C 500 100 500 500 900 500', 
             startNode: { x: 100, y: 100, icon: '🐝' },
             endNode: { x: 900, y: 500, icon: '🌸' },
+            label: '蜜蜂'
         },
         {
             id: 'butterfly',
@@ -113,6 +120,7 @@ export const tracingLevels: TracingLevel[] = [
             d: 'M 100 500 C 500 500 500 100 900 100', 
             startNode: { x: 100, y: 500, icon: '🦋' },
             endNode: { x: 900, y: 100, icon: '🌺' },
+            label: '蝴蝶'
         },
         // Loop in middle
         {
@@ -121,6 +129,7 @@ export const tracingLevels: TracingLevel[] = [
             d: 'M 100 300 C 400 300 400 100 500 100 C 600 100 600 500 500 500 C 400 500 400 300 900 300', 
             startNode: { x: 100, y: 300, icon: '🐜' },
             endNode: { x: 900, y: 300, icon: '🍭' },
+            label: '螞蟻'
         }
     ]
   }

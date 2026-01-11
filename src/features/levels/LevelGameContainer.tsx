@@ -17,7 +17,7 @@ export const LevelGameContainer: React.FC<LevelGameContainerProps> = ({ levelId,
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [key, setKey] = useState(0); // Force reset on restart
   const [paths, setPaths] = useState<PathDef[]>([]);
-  const { playSuccess, playMistake, playStageComplete } = useGameSound();
+  const { playSuccess, playMistake, playStageComplete, playVoiceMatch } = useGameSound();
 
   // Load Level Config
   const levelConfig = useMemo(() => getLevelById(levelId), [levelId]);
@@ -87,6 +87,7 @@ export const LevelGameContainer: React.FC<LevelGameContainerProps> = ({ levelId,
                 onAllCompleted={handleAllCompleted}
                 onMistake={playMistake}
                 onPathComplete={playSuccess}
+                onVoiceMatch={playVoiceMatch}
             />
         </div>
 

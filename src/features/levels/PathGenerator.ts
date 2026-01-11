@@ -13,6 +13,7 @@ const COLORS = [
 
 const ICONS_START = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊'];
 const ICONS_END = ['🦴', '🧶', '🧀', '🌻', '🥕', '🍗'];
+const LABELS_HK = ['狗', '貓', '老鼠', '倉鼠', '兔仔', '狐狸'];
 
 // Helper to get random number in range
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -159,7 +160,8 @@ export const generateLevel = (difficulty: DifficultyTier): PathDef[] => {
                 x: endX,
                 y: endY,
                 icon: ICONS_END[iconIndex]
-            }
+            },
+            label: LABELS_HK[iconIndex]
         };
     });
 };
