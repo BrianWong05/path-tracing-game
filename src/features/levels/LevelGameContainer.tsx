@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { generateLevelPaths } from './LevelGenerator';
+import { RotateCcw, ArrowLeft } from 'lucide-react';
+import { generateLevel } from './PathGenerator';
 import { getLevelById } from './LevelData';
 import { TangledCanvas } from '../tracing/TangledCanvas';
 import { VictoryModal } from '../tracing/VictoryModal';
-import { ArrowLeft } from 'lucide-react';
+import type { PathDef } from '../tracing/types';
 
 interface LevelGameContainerProps {
   levelId: number;
@@ -14,21 +15,27 @@ interface LevelGameContainerProps {
 export const LevelGameContainer: React.FC<LevelGameContainerProps> = ({ levelId, onBack, onNextLevel }) => {
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [key, setKey] = useState(0); // Force reset on restart
+  const [paths, setPaths] = useState<PathDef[]>([]);
 
   // Load Level Config
   const levelConfig = useMemo(() => getLevelById(levelId), [levelId]);
   
-  // Generate Paths
-  const paths = useMemo(() => {
-    if (!levelConfig) return [];
-    return generateLevelPaths(levelConfig);
-  }, [levelConfig]);
-
-  // Reset state when level changes
+  // Initialize or Regenerate Level
   useEffect(() => {
-    setIsVictoryOpen(false);
-    setKey(prev => prev + 1);
-  }, [levelId]);
+    if (levelConfig) {
+        setPaths(generateLevel(levelConfig.tier));
+        setKey(prev => prev + 1); // Reset canvas
+        setIsVictoryOpen(false);
+    }
+  }, [levelId, levelConfig]);
+
+  const handleRegenerate = () => {
+    if (levelConfig) {
+      setPaths(generateLevel(levelConfig.tier));
+      setKey(prev => prev + 1); // Force canvas remount/reset
+      setIsVictoryOpen(false);
+    }
+  };
   
   if (!levelConfig) {
       return <div>Error: Level not found</div>;
@@ -56,9 +63,17 @@ export const LevelGameContainer: React.FC<LevelGameContainerProps> = ({ levelId,
             >
                 <ArrowLeft size={24} className="text-slate-600" />
             </button>
-            <div className="bg-white px-6 py-2 rounded-full shadow-md font-bold text-slate-700">
-                Level {levelId} <span className="text-slate-400 font-normal mx-2">|</span> {levelConfig.tier.toUpperCase()}
+            <div className="bg-white px-6 py-2 rounded-full shadow-md font-bold text-slate-700 flex items-center gap-3">
+                <span>Level {levelId} <span className="text-slate-400 font-normal mx-2">|</span> {levelConfig.tier.toUpperCase()}</span>
             </div>
+            
+            <button
+                onClick={handleRegenerate}
+                className="bg-white px-4 py-2 rounded-full shadow-md hover:bg-slate-50 transition-colors flex items-center gap-2 text-slate-700 font-medium"
+            >
+                <RotateCcw size={18} />
+                Generate New Level (產生新關卡)
+            </button>
         </div>
 
         {/* Game Canvas */}

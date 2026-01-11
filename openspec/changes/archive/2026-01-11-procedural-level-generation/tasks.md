@@ -1,0 +1,14 @@
+- [x] Create `src/features/levels/PathGenerator.ts`
+  - [x] Implement `generateLevel` function.
+  - [x] Implement difficulty-specific Bezier logic.
+  - [x] Implement collision detection for start nodes.
+- [x] Update `src/features/levels/LevelGameContainer.tsx`
+  - [x] Create internal state or trigger to force re-generation.
+  - [x] Add "Generate New Level" button UI.
+  - [x] Wire button to `PathGenerator`.
+- [x] Verify
+  - [x] Check Easy mode: No straight lines.
+  - [x] Check Medium mode: S-waves and crossing.
+  - [x] Check Hard mode: Loops and chaos.
+  - [x] Verify "Generate New Level" refreshes the canvas.
+
