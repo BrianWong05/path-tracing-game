@@ -1,0 +1,9 @@
+- [x] Create `openspec/changes/refactor-matching-to-tracing` directory structure
+- [x] Draft `openspec/changes/refactor-matching-to-tracing/proposal.md`
+- [x] Draft `openspec/changes/refactor-matching-to-tracing/design.md`
+- [x] Draft `openspec/changes/refactor-matching-to-tracing/tasks.md`
+- [x] Create spec deltas for `game-mechanics` (Matching Guide Paths)
+- [x] Create spec deltas for `ui-ux` (Visual Feedback)
+- [x] Create spec deltas for `accessibility` (Tolerance)
+- [x] Validate proposal with `openspec validate`
+- [x] Notify user for review
