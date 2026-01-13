@@ -52,6 +52,14 @@ export default defineConfig({
       }
     })
   ],
+  server: {
+    watch: {
+      ignored: ['**/android/**', '**/ios/**'],
+    },
+  },
+  optimizeDeps: {
+    entries: ['index.html', 'src/**/*.{ts,tsx}'],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
