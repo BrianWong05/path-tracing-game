@@ -15,6 +15,12 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
+    // 0. Check Network Status
+    if (!navigator.onLine) {
+        setError('離線模式無法使用語音功能 (Offline Mode)');
+        return;
+    }
+
     // 1. Check Browser Support
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -85,6 +91,10 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
 
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
+        if (!navigator.onLine) {
+             setError('離線模式無法使用語音功能 (Offline Mode)');
+             return;
+        }
         try {
             recognitionRef.current.start();
         } catch(e: any) {

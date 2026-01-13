@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Home } from '@/pages/Home';
 import { LevelSelector } from '@/features/levels/LevelSelector';
 import { LevelGameContainer } from '@/features/levels/LevelGameContainer';
+import { NetworkStatus } from '@/components/NetworkStatus';
+import { InstallPrompt } from '@/components/InstallPrompt';
 
 type CurrentView = 'home' | 'levels' | 'game';
 
@@ -33,6 +35,8 @@ function App() {
 
   return (
     <>
+      <NetworkStatus />
+      <InstallPrompt />
       {view === 'game' && (
          <LevelGameContainer 
             levelId={currentLevelId}
