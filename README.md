@@ -1,73 +1,80 @@
-# React + TypeScript + Vite
+# Happy Tracing / 快樂運筆練習 ✍️✨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF.svg)](https://vite.dev/)
+[![PWA](https://img.shields.io/badge/PWA-Ready-orange.svg)](https://web.dev/progressive-web-apps/)
 
-Currently, two official plugins are available:
+**Happy Tracing** is a specialized web-based path tracing game designed specifically for exceptional children (special education). Unlike traditional "matching" games, this tool focuses on training fine motor skills and hand muscle control (Graphomotor skills) by requiring users to trace complex, curved paths on a touchscreen.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+[繁體中文版 (README.zh-TW.md)](./README.zh-TW.md)
 
-## React Compiler
+## 🌟 Motivation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+In special education, developing hand-eye coordination and fine motor control is crucial. **Happy Tracing** exists to:
+- **Enhance Graphomotor Skills**: Training children to control their hand muscles through deliberate tracing of curved and complex paths.
+- **Accessibility First**: Simple, high-contrast, and intuitive interface designed for children with diverse needs.
+- **Cultural & Linguistic Relevance**: A fun way to learn Cantonese vocabulary using native expressions and pronunciation.
 
-## Expanding the ESLint configuration
+## 🚀 Key Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **🎨 Procedural Level Generation**: 
+  - Every level is unique! Using Bezier curve logic, the app generates smooth, curved paths that challenge motor skills far more effectively than simple straight lines.
+  - Three difficulty levels: **Easy**, **Medium**, and **Hard**.
+- **🎙️ Cantonese First**:
+  - Native **zh-HK** Text-to-Speech (TTS) integration.
+  - Localization focused on Hong Kong Cantonese vocabulary (e.g., using "兔仔" instead of "兔子").
+- **🔊 Voice Interaction**:
+  - Leverages the **Web Speech API** to listen for the child's pronunciation.
+  - Correct pronunciation triggers celebratory rewards, encouraging vocalization alongside motor training.
+- **📶 Offline Support (PWA)**:
+  - Fully functional Progressive Web App. 
+  - Works 100% offline once installed, making it perfect for classrooms or therapy sessions without reliable internet.
+- **📱 Native Support**:
+  - Built with **Capacitor**, allowing easy conversion to a native Android APK for a more robust tablet experience.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛠️ Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Framework**: [React 19](https://react.dev/)
+- **Build Tool**: [Vite](https://vite.dev/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Native Bridge**: [Capacitor](https://capacitorjs.com/)
+- **PWA**: [Vite PWA Plugin](https://vite-pwa-org.netlify.app/)
+- **Icons**: [Lucide React](https://lucide.dev/)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 📦 Getting Started
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (Latest LTS recommended)
+- npm or pnpm
+
+### Installation
+```bash
+git clone https://github.com/BrianWong05/path-tracing-game.git
+cd path-tracing-game
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Development
+```bash
+npm run dev
 ```
+
+### Build & Deploy
+```bash
+# Production build
+npm run build
+
+# Synchronize with Capacitor (Android/iOS)
+npm run cap:sync
+
+# Deploy to GitHub Pages
+npm run deploy
+```
+
+## 🌐 Deployment
+This project is automatically deployed to GitHub Pages. You can access the live version here: [https://brianwong05.github.io/path-tracing-game/](https://brianwong05.github.io/path-tracing-game/)
+
+## 📜 License
+This project is licensed under the MIT License.
