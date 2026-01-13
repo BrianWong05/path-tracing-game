@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 
 export interface UseCantoneseSpeechResult {
   isListening: boolean;
@@ -9,19 +10,19 @@ export interface UseCantoneseSpeechResult {
   stopListening: () => void;
 }
 
-// Lazy load the plugin to prevent crash on module init
-let SpeechRecognitionPlugin: any = null;
-const getSpeechRecognition = async () => {
-  if (!SpeechRecognitionPlugin && Capacitor.isNativePlatform()) {
+// Safe wrapper to get plugin - prevents crash if plugin fails to initialize
+const getSpeechRecognition = () => {
+  if (Capacitor.isNativePlatform()) {
     try {
-      const module = await import('@capacitor-community/speech-recognition');
-      SpeechRecognitionPlugin = module.SpeechRecognition;
+      return SpeechRecognition;
     } catch (e) {
       console.warn('Speech recognition plugin not available:', e);
+      return null;
     }
   }
-  return SpeechRecognitionPlugin;
+  return null;
 };
+
 
 export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult => {
   const [isListening, setIsListening] = useState(false);
@@ -98,6 +99,45 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
     };
   }, [keywords, checkKeywords]);
 
+  // NATIVE IMPLEMENTATION - Setup result listener
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return; // Skip if web
+
+    let partialListener: any;
+    let isMounted = true;
+    
+    const setupListeners = async () => {
+        try {
+            const SR = getSpeechRecognition();
+            if (!SR || !isMounted) return;
+            
+            // Check if plugin is available before adding listener
+            const { available } = await SR.available();
+            if (!available || !isMounted) return;
+            
+            partialListener = await SR.addListener('partialResults', (data: { matches: string[] }) => {
+                const transcript = data.matches && data.matches.length > 0 ? data.matches[0] : '';
+                if (transcript) checkKeywords(transcript);
+            });
+        } catch (e) {
+            console.warn("Speech recognition listener setup skipped:", e);
+        }
+    };
+    
+    setupListeners();
+
+    return () => {
+        isMounted = false;
+        if (partialListener) {
+            try {
+                partialListener.remove();
+            } catch (e) {
+                // Ignore cleanup errors
+            }
+        }
+    };
+  }, [keywords, checkKeywords]);
+
   const startListening = useCallback(async () => {
     // 1. WEB START
     if (!Capacitor.isNativePlatform()) {
@@ -118,22 +158,32 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
     }
 
     // 2. NATIVE START
+    console.log('[Speech] Starting native recognition...');
     try {
-        const SR = await getSpeechRecognition();
+        const SR = getSpeechRecognition();
+        console.log('[Speech] Plugin loaded:', !!SR);
+        
         if (!SR) {
             setError('Speech recognition not available');
             return;
         }
 
         const { available } = await SR.available();
+        console.log('[Speech] Available:', available);
+        
         if (!available) {
              setError('Speech recognition not available on this device');
              return;
         }
         
         const hasPermission = await SR.checkPermissions();
+        console.log('[Speech] Current permissions:', JSON.stringify(hasPermission));
+        
         if (hasPermission.speechRecognition !== 'granted') {
+             console.log('[Speech] Requesting permissions...');
              const requested = await SR.requestPermissions();
+             console.log('[Speech] Permission result:', JSON.stringify(requested));
+             
              if (requested.speechRecognition !== 'granted') {
                  setError('Microphone permission denied');
                  return;
@@ -143,6 +193,7 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
         setIsListening(true);
         setError(null);
         
+        console.log('[Speech] Starting...');
         await SR.start({
             language: "zh-HK",
             maxResults: 2,
@@ -150,14 +201,16 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
             partialResults: true,
             popup: false,
         });
+        console.log('[Speech] Started successfully');
         
     } catch (e: any) {
-        console.error('Native speech error:', e);
+        console.error('[Speech] Native speech error:', e);
         setIsListening(false);
         setError('Speech recognition failed: ' + e.message);
     }
 
   }, [isListening]);
+
 
   const stopListening = useCallback(async () => {
       // 1. WEB STOP
@@ -170,7 +223,7 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
 
       // 2. NATIVE STOP
       try {
-          const SR = await getSpeechRecognition();
+          const SR = getSpeechRecognition();
           if (SR) {
               await SR.stop();
           }
