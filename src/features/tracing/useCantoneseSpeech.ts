@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 export interface UseCantoneseSpeechResult {
   isListening: boolean;
@@ -8,13 +9,41 @@ export interface UseCantoneseSpeechResult {
   stopListening: () => void;
 }
 
+// Lazy load the plugin to prevent crash on module init
+let SpeechRecognitionPlugin: any = null;
+const getSpeechRecognition = async () => {
+  if (!SpeechRecognitionPlugin && Capacitor.isNativePlatform()) {
+    try {
+      const module = await import('@capacitor-community/speech-recognition');
+      SpeechRecognitionPlugin = module.SpeechRecognition;
+    } catch (e) {
+      console.warn('Speech recognition plugin not available:', e);
+    }
+  }
+  return SpeechRecognitionPlugin;
+};
+
 export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult => {
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [matchedKeyword, setMatchedKeyword] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
 
+  // Helper to handle keyword matching
+  const checkKeywords = useCallback((transcript: string) => {
+    console.log('🎤 Speech:', transcript);
+    const found = keywords.find(kw => transcript.includes(kw));
+    if (found) {
+      console.log('🎯 Matched Keyword:', found);
+      setMatchedKeyword(found);
+      setTimeout(() => setMatchedKeyword(null), 1500);
+    }
+  }, [keywords]);
+
+  // WEB IMPLEMENTATION
   useEffect(() => {
+    if (Capacitor.isNativePlatform()) return; // Skip if native
+
     // 0. Check Network Status
     if (!navigator.onLine) {
         setError('離線模式無法使用語音功能 (Offline Mode)');
@@ -22,15 +51,15 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
     }
 
     // 1. Check Browser Support
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognitionWeb = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionWeb) {
       setError('Browser does not support Speech Recognition');
       return;
     }
 
     // 2. Initialize Recognition
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionWeb();
     recognition.lang = 'zh-HK';
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -43,74 +72,114 @@ export const useCantoneseSpeech = (keywords: string[]): UseCantoneseSpeechResult
     };
 
     recognition.onend = () => {
-      // If we simply stopped, update state.
-      // If we want it to be always-on, we'd restart here unless manually stopped.
-      // For now, let's treat it as "stops when silence/error/manual stop".
       setIsListening(false);
     };
 
     recognition.onerror = (event: any) => {
-      if (event.error === 'aborted') {
-        // Ignore aborted errors as they happen during cleanup
-        return;
-      }
+      if (event.error === 'aborted') return;
       console.error('Speech recognition error', event.error);
       if (event.error === 'not-allowed') {
          setError('Microphone permission denied');
       }
-      // 'no-speech' is common, don't show error for it
     };
 
     recognition.onresult = (event: any) => {
       const lastResult = event.results[event.results.length - 1];
       const transcript = lastResult[0].transcript;
-      
-      console.log('🎤 Speech:', transcript, lastResult.isFinal ? '(Final)' : '(Interim)');
-
-      // Match on BOTH interim and final for real-time response
-      const found = keywords.find(kw => transcript.includes(kw));
-      
-      if (found) {
-        console.log('🎯 Matched Keyword:', found);
-        setMatchedKeyword(found);
-        
-        // Clear the match after a short duration so the same word can be triggered again
-        setTimeout(() => setMatchedKeyword(null), 1500); 
-      }
+      checkKeywords(transcript);
     };
 
     recognitionRef.current = recognition;
 
-    // Cleanup
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.abort(); // abort is faster than stop
+        recognitionRef.current.abort();
       }
     };
-  }, [keywords]);
+  }, [keywords, checkKeywords]);
 
-  const startListening = useCallback(() => {
-    if (recognitionRef.current && !isListening) {
-        if (!navigator.onLine) {
-             setError('離線模式無法使用語音功能 (Offline Mode)');
-             return;
-        }
-        try {
-            recognitionRef.current.start();
-        } catch(e: any) {
-             // Ignore "already started" errors
-            if (e.name !== 'InvalidStateError') {
-                 console.error('Failed to start recognition:', e);
+  const startListening = useCallback(async () => {
+    // 1. WEB START
+    if (!Capacitor.isNativePlatform()) {
+        if (recognitionRef.current && !isListening) {
+            if (!navigator.onLine) {
+                 setError('離線模式無法使用語音功能 (Offline Mode)');
+                 return;
+            }
+            try {
+                recognitionRef.current.start();
+            } catch(e: any) {
+                if (e.name !== 'InvalidStateError') {
+                     console.error('Failed to start recognition:', e);
+                }
             }
         }
+        return;
     }
+
+    // 2. NATIVE START
+    try {
+        const SR = await getSpeechRecognition();
+        if (!SR) {
+            setError('Speech recognition not available');
+            return;
+        }
+
+        const { available } = await SR.available();
+        if (!available) {
+             setError('Speech recognition not available on this device');
+             return;
+        }
+        
+        const hasPermission = await SR.checkPermissions();
+        if (hasPermission.speechRecognition !== 'granted') {
+             const requested = await SR.requestPermissions();
+             if (requested.speechRecognition !== 'granted') {
+                 setError('Microphone permission denied');
+                 return;
+             }
+        }
+
+        setIsListening(true);
+        setError(null);
+        
+        await SR.start({
+            language: "zh-HK",
+            maxResults: 2,
+            prompt: "請說出指令...",
+            partialResults: true,
+            popup: false,
+        });
+        
+    } catch (e: any) {
+        console.error('Native speech error:', e);
+        setIsListening(false);
+        setError('Speech recognition failed: ' + e.message);
+    }
+
   }, [isListening]);
 
-  const stopListening = useCallback(() => {
-      if (recognitionRef.current) {
-          recognitionRef.current.stop();
+  const stopListening = useCallback(async () => {
+      // 1. WEB STOP
+      if (!Capacitor.isNativePlatform()) {
+          if (recognitionRef.current) {
+              recognitionRef.current.stop();
+          }
+          return;
+      }
+
+      // 2. NATIVE STOP
+      try {
+          const SR = await getSpeechRecognition();
+          if (SR) {
+              await SR.stop();
+          }
+          setIsListening(false);
+      } catch (e) {
+          console.error("Failed to stop", e);
       }
   }, []);
 
   return { isListening, error, matchedKeyword, startListening, stopListening };
 };
+
