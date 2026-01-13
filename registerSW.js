@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/path-tracing-game/sw.js', { scope: '/path-tracing-game/' })})}
